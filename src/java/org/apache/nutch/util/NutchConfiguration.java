@@ -17,6 +17,13 @@
 
 package org.apache.nutch.util;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.LinkOption;
 import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.UUID;
@@ -29,6 +36,7 @@ import org.apache.hadoop.conf.Configuration;
  */
 public class NutchConfiguration {
   public static final String UUID_KEY = "nutch.conf.uuid";
+  private static final Path CUSTOM_CONFIG_PATH = FileSystems.getDefault().getPath("/etc/nutch-site.xml");
 
   private NutchConfiguration() {
   } // singleton
@@ -80,6 +88,7 @@ public class NutchConfiguration {
   public static Configuration create(boolean addNutchResources,
       Properties nutchProperties) {
     Configuration conf = new Configuration();
+
     setUUID(conf);
     if (addNutchResources) {
       addNutchResources(conf);
@@ -99,6 +108,16 @@ public class NutchConfiguration {
   private static Configuration addNutchResources(Configuration conf) {
     conf.addResource("nutch-default.xml");
     conf.addResource("nutch-site.xml");
+
+    //// TODO: 9/21/16 convert this to a hdfs path instead
+    if (Files.exists(CUSTOM_CONFIG_PATH)) {
+      try {
+        conf.addResource(new FileInputStream(CUSTOM_CONFIG_PATH.toFile()));
+      } catch (FileNotFoundException e) {
+        e.printStackTrace();
+      }
+    }
+
     return conf;
   }
 }
