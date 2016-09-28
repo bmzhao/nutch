@@ -51,6 +51,7 @@ import javax.net.ssl.SSLContext;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.net.URL;
+import java.net.URLClassLoader;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
@@ -63,6 +64,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
 /**
+ * Sends NutchDocuments to a configured Elasticsearch index over REST (not the raw TCP transportclient).
  */
 public class ElasticRestIndexWriter implements IndexWriter {
   public static Logger LOG = LoggerFactory
@@ -128,7 +130,7 @@ public class ElasticRestIndexWriter implements IndexWriter {
       hostnameVerifier = new DefaultHostnameVerifier();
     }
 
-    SSLConnectionSocketFactory sslSocketFactory = new SSLConnectionSocketFactory(sslContext);
+    SSLConnectionSocketFactory sslSocketFactory = new SSLConnectionSocketFactory(sslContext,hostnameVerifier);
     SchemeIOSessionStrategy httpsIOSessionStrategy = new SSLIOSessionStrategy(sslContext, hostnameVerifier);
 
     JestClientFactory jestClientFactory = new JestClientFactory();
