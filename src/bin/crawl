@@ -166,7 +166,10 @@ function __bin_nutch {
 
 # initial injection
 echo "Injecting seed URLs"
+#export OLD_HADOOP_OPTS="$HADDOP_OPTS"
+#export HADOOP_OPTS="$OLD_HADOOP_OPTS -Xdebug -Xrunjdwp:transport=dt_socket,server=y,address=12345"
 __bin_nutch inject "$CRAWL_PATH"/crawldb "$SEEDDIR"
+#export HADOOP_OPTS="$OLD_HADOOP_OPTS"
 
 # main loop : rounds of generate - fetch - parse - update
 for ((a=1; ; a++))
@@ -248,8 +251,10 @@ do
   __bin_nutch dedup "$CRAWL_PATH"/crawldb
 
   if $INDEXFLAG; then
+#      export HADOOP_OPTS="$OLD_HADOOP_OPTS -Xdebug -Xrunjdwp:transport=dt_socket,server=y,address=12345"
       echo "Indexing $SEGMENT to index"
       __bin_nutch index $JAVA_PROPERTIES "$CRAWL_PATH"/crawldb -linkdb "$CRAWL_PATH"/linkdb "$CRAWL_PATH"/segments/$SEGMENT
+#      export HADOOP_OPTS="$OLD_HADOOP_OPTS"
 
       echo "Cleaning up index if possible"
       __bin_nutch clean $JAVA_PROPERTIES "$CRAWL_PATH"/crawldb
