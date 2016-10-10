@@ -44,7 +44,6 @@ public class NutchConfiguration {
 
     public static final String UUID_KEY = "nutch.conf.uuid";
     public static final String ALTERNATE_CONF_PATH = "nutch.conf.alternate.path";
-    public static final String ALTERNATE_CONF_FS = "nutch.conf.alternate.fs";
 
     private NutchConfiguration() {
     } // singleton
@@ -63,8 +62,7 @@ public class NutchConfiguration {
      * Retrieve a Nutch UUID of this configuration object, or null if the
      * configuration was created elsewhere.
      *
-     * @param conf
-     *          configuration instance
+     * @param conf configuration instance
      * @return uuid or null
      */
     public static String getUUID(Configuration conf) {
@@ -86,12 +84,10 @@ public class NutchConfiguration {
     /**
      * Create a {@link Configuration} from supplied properties.
      *
-     * @param addNutchResources
-     *          if true, then first <code>nutch-default.xml</code>, and then
-     *          <code>nutch-site.xml</code> will be loaded prior to applying the
-     *          properties. Otherwise these resources won't be used.
-     * @param nutchProperties
-     *          a set of properties to define (or override)
+     * @param addNutchResources if true, then first <code>nutch-default.xml</code>, and then
+     *                          <code>nutch-site.xml</code> will be loaded prior to applying the
+     *                          properties. Otherwise these resources won't be used.
+     * @param nutchProperties   a set of properties to define (or override)
      */
     public static Configuration create(boolean addNutchResources,
                                        Properties nutchProperties) {
@@ -110,47 +106,30 @@ public class NutchConfiguration {
     /**
      * Add the standard Nutch resources to {@link Configuration}.
      *
-     * @param conf
-     *          Configuration object to which configuration is to be added.
-     *
-     * Reading config from hdfs
-     * http://blog.rajeevsharma.in/2009/06/using-hdfs-in-java-0200.html
+     * @param conf Configuration object to which configuration is to be added.
+     *             <p>
+     *             Reading config from hdfs
+     *             http://blog.rajeevsharma.in/2009/06/using-hdfs-in-java-0200.html
      */
     private static Configuration addNutchResources(Configuration conf) {
         conf.addResource("nutch-default.xml");
         conf.addResource("nutch-site.xml");
 
-        String fs = conf.get(ALTERNATE_CONF_FS, "file");
-
         String alternateConfigPath = conf.get(ALTERNATE_CONF_PATH);
         if (!StringUtils.isBlank(alternateConfigPath)) {
-            switch (fs) {
-                case "file":
-                    java.nio.file.Path alternateLocalFSPath = FileSystems.getDefault().getPath(alternateConfigPath);
-                    if (Files.exists(alternateLocalFSPath)) {
-                        try {
-                            LOG.info("Loading alternate config from local fs path: {}", alternateLocalFSPath.toString());
-                            conf.addResource(new FileInputStream(alternateLocalFSPath.toFile()));
-                        } catch (FileNotFoundException e) {
-                            LOG.error(ExceptionUtils.getStackTrace(e));
-                        }
-                    }
-                    break;
-                case "hdfs":
-                    try {
-                        FileSystem fileSystem = FileSystem.get(conf);
-                        Path hdfsPath = new Path(alternateConfigPath);
-                        if (fileSystem.exists(hdfsPath)) {
-                            LOG.info("Loading alternate config from hdfs path: {}", hdfsPath.toString());
-                            conf.addResource(fileSystem.open(hdfsPath));
-                        }
-                    } catch (IOException e) {
-                        LOG.error(ExceptionUtils.getStackTrace(e));
-                    }
-                    break;
+            Path path = new Path(alternateConfigPath);
+            try {
+                //handles file:// and hdfs:// as described: http://stackoverflow.com/questions/17072543/reading-hdfs-and-local-files-in-java
+                FileSystem fs = path.getFileSystem(conf);
+                if (fs.exists(path)) {
+                    LOG.info("Loading alternate config path: {}", path.toString());
+                    conf.addResource(fs.open(path));
+                }
+            } catch (IOException e) {
+                LOG.error("Failed to load alternate config path: \n", ExceptionUtils.getStackTrace(e));
             }
-        }
 
+        }
         return conf;
     }
 }
