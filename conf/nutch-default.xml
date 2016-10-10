@@ -36,20 +36,13 @@
 
 
 <property>
-  <name>nutch.conf.alternate.fs</name>
-  <value>file</value>
-  <description>File system to load an alternate nutch-site.xml, if it exists. Currently,
-  only "file" and "hdfs" are supported. "file" refers to the local file system of the
-  running server (e.g. file:///etc/nutch-site.xml), so you would have to make sure this
-  file exists on all mapreduce servers if running in distributed mode. "hdfs" is for hadoop's
-  distributed file system, when running in distributed mode.</description>
-</property>
-
-<property>
   <name>nutch.conf.alternate.path</name>
-  <value>/tmp/nutch-site.xml</value>
-  <description>Path to alternate nutch config file to override both conf/nutch-default.xml and conf/nutch-site.xml,
-    useful for nutch distributed mode (since the distributed mode jar has configs baked into the jar).</description>
+  <value>file:///tmp/nutch-site.xml</value>
+  <description>Path to alternate nutch config file to override both
+    conf/nutch-default.xml and conf/nutch-site.xml, useful for nutch
+    distributed mode (since the distributed mode jar has configs baked into the jar).
+    An example is file:///tmp/nutch-site.xml or hdfs:///user/exampleuser/nutch-site.xml
+  </description>
 </property>
 
 <!-- file properties -->
